@@ -1,0 +1,6 @@
+Test E:
+This workload tests our malloc and free by nearly filling the memory block with a random amount of strings of french fries. Each string is 13 characters long: “french fries\0”. A french fry string is malloc()ed a random amount of time, a range of 1 to 100 times. The number of strings are stored in a char ** array. At the end each french fry string is free()d from the box.
+
+Test F:
+This workload was built to test our malloc and free’s ability to function and handle errors. At first 10 bytes are requested and then an int is declared and attempted to be free()d. This should cause an error. The first 10 bytes are to be free()d, but then the same pointer is attempted to be free()d again, this should cause an error. All in all, 20 error messages should show as the loop runs 10 times.
+

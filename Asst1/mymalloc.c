@@ -1,0 +1,103 @@
+#include "mymalloc.h"
+
+
+void* mymalloc(int size, char *file, int line){
+ 
+  void* result;
+  meta *list = (void*)array;
+
+  //list needs to be initialized if it does not contain any data yet
+  if(list->size == 0){
+    list->size = 4096-sizeof(struct meta);
+    list->flag = 1;
+  }
+  
+  //set pointers and prev for loop
+  meta *ptr = list;
+
+  //setting the pointer to the first open place in the array
+  while(ptr->next != NULL && ((ptr->flag == 0) || ptr->size < size)){
+    ptr = ptr->next;
+  }
+
+  //checking if we made it to the end of the array and have not found an open block
+if(ptr->next == NULL && ptr->flag == 0) {
+  printf("ERROR: no available space remaining. At FILE: %s and line %d\n", file, line);
+  result = NULL;
+  return result;
+}
+
+//checking if we have enough space for request
+if(ptr->size < size){
+  printf("ERROR: not enough space for request. At FILE: %s and LINE %d\n", file, line); 
+  result = NULL;
+  return result;
+}
+
+
+  //create the result
+
+  //if more space is available than being asked for, need to create way to split remaining space
+  if(ptr->size > size+sizeof(meta)){
+    meta *new = (meta*)((char*)ptr+size+sizeof(meta));
+    new->size = ptr->size - size - sizeof(meta);
+    new->flag =1;
+    new->next = ptr->next;
+    ptr->size = size;
+    ptr->flag =0;
+    ptr->next = new;			       
+  }
+
+  //this here means its an exact fit
+  else if(ptr->size == size){
+    ptr->flag = 0;
+  }
+
+  //return the starting address of the block of allocated memory
+  result = (void*)(ptr+1);
+  return result;
+}
+
+
+
+
+
+
+
+
+void myfree( void* ptr, char* file, int line){
+
+  //Checking for null
+  if(ptr == NULL){
+    printf("NULL ERROR: attempting to free a non-pointer at FILE: %s and LINE: %d\n", file, line);
+    return;
+  }
+  
+  //Checking if the ptr is stored within the bounds of the array
+    if(((void*)(array)<=ptr)&&(ptr<=(void*)(array+4096))){
+      //two types of meta* are necessary as explained in README.pdf
+        meta* new = ptr;
+      	meta* mp = (meta*)((char*)ptr - sizeof(meta));
+	//if the flag is 1, then this pointer is already freed
+	if(mp->flag == 1){
+	  printf("ERROR: Redundant free()ing of the same pointer at FILE %s, and LINE %d\n", file, line);
+	  return;
+	}
+	//if the size is invalid, or we have contracting data in 'new' and 'mp', then this pointer was not allocated by malloc
+	if((mp->size == 0 || mp->size > 4096) || (new->flag == 1  && mp->flag == 0)){
+	  printf("ERROR: trying to free a pointer that was not malloced at FILE: %s and LINE: %d\n", file, line);
+	  return;
+	}
+	//Freeing the pointer
+	mp->flag =1;
+	mp->size = 0;
+    }
+
+    //When the pointer is not in bounds of the array, it is because it was not allocated by malloc
+  else{
+    printf("ERROR: attempting to free a pointer that was not malloced at FILE: %s and LINE: %d\n", file, line);
+    return;
+	
+  }
+  return;
+}
